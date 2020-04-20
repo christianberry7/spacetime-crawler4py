@@ -5,17 +5,24 @@ import bs4
 import requests
 import re
 
-_LEGAL_DOMAINS = [r'.ics.uci.edu/', r'.cs.uci.edu/', r'.informatics.uci.edu/', r'.stat.uci.edu/', r'today.uci.edu/department/information_computer_sciences/']
-LEGAL_DEOMAINS = map(re.compile, _LEGAL_DOMAINS)
+_LEGAL_DOMAINS = r'.ics.uci.edu/|.cs.uci.edu/|.informatics.uci.edu/|.stat.uci.edu/|today.uci.edu/department/information_computer_sciences/'
+LEGAL_DOMAINS = re.compile(_LEGAL_DOMAINS)
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
-    soup = bs4.BeautifulSoup(resp)
+    print("Extracting links from " + url + "...")
+    htlm_resp = requests.get(url).content
+    soup = bs4.BeautifulSoup(htlm_resp, 'html.parser')
     all_links = [link.get('href') for link in soup.find_all('a', attrs={'href': re.compile('^http://')})]
-    legal_links = filter(is_legal, all_links)
+    legal_links = list(filter(is_legal, all_links))
+
+    # for link in legal_links:
+    #     print("Legal link found: " + link)
+
+    print(">> Returning legal links:\n>> " + "\n>> ".join(legal_links))
 
     # Check for redundancy in the frontier somewhere 
     # around here and return that filtered link instead
@@ -24,10 +31,9 @@ def extract_next_links(url, resp):
     return legal_links
 
 def is_legal(url):
-    for domain in LEGAL_DEOMAINS:
-        if domain.match(url):
-            return True
-        return False
+    if LEGAL_DOMAINS.search(url) is not None:
+        return True
+    return False
 
 def is_valid(url):
     try:
