@@ -12,37 +12,39 @@ _TRUNCATE_FRAGMENT = r'[?].*'
 TRUNCATE_FRAGMENT = re.compile(_TRUNCATE_FRAGMENT)
 
 
-
 def scraper(url, resp):
+    # Need to handle redirection loops
+    # print(">> [STATUS CODE]", resp.status)
+    if resp.status == requests.codes['bad_request']:
+        return []
+
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
-    # print("Extracting links from " + url + "...")
-    html_file = requests.get(url)
-
-    soup = bs4.BeautifulSoup(html_file.content, 'html.parser')
+    soup = bs4.BeautifulSoup(resp.raw_response.content, 'html.parser')
+    
     all_links = [(link.get('href')) for link in soup.find_all('a', attrs={'href': re.compile('^http://')})]
     legal_links = list(filter(is_legal_and_valid, all_links))
-    legal_links = set(map(truncate_fragment, legal_links))
 
-    # for link in legal_links:
-    #     print("Legal link found: " + link)
+    # Refer to function why this is commented
+    # legal_links = set(map(truncate_fragment, legal_links))
 
-    print(">> Returning legal links:\n>> " + "\n>> ".join(legal_links))
-
-    # Check for redundancy in the frontier somewhere 
-    # around here and return that filtered link instead
-    # to prevent infinite loops
+    # Debugging purposes
+    # print(">> Found all links:\n>> " + "\n>> ".join(all_links))
+    # print(">> Returning legal links:\n>> " + "\n>> ".join(legal_links))
     
     return legal_links
 
 def is_legal_and_valid(url):
+    # Checks to see if URL is within our intended scope
     if LEGAL_DOMAINS.search(url) is not None:
         return is_valid(url)
     return False
 
 def truncate_fragment(url):
+    # Completely removes the fragment portion of the URL
+    # Not viable, loses a lot of useful links
     return TRUNCATE_FRAGMENT.sub('', url)
 
 def is_valid(url):

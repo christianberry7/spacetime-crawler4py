@@ -48,9 +48,12 @@ class Frontier(object):
             f"total urls discovered.")
 
     def get_tbd_url(self):
+        # EDITED STUFF HERE
         try:
+            print(">> ONGOING SIZE OF FRONTIER:", len(self.save))
             return self.to_be_downloaded.pop()
         except IndexError:
+            print(">> FINAL SIZE OF FRONTIER:", len(self.save))
             return None
 
     def add_url(self, url):
