@@ -1,13 +1,33 @@
 import re
 from urllib.parse import urlparse
 
+import bs4
+import requests
+import re
+
+_LEGAL_DOMAINS = [r'.ics.uci.edu/', r'.cs.uci.edu/', r'.informatics.uci.edu/', r'.stat.uci.edu/', r'today.uci.edu/department/information_computer_sciences/']
+LEGAL_DEOMAINS = map(re.compile, _LEGAL_DOMAINS)
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
-    # Implementation requred.
-    return list()
+    soup = bs4.BeautifulSoup(resp)
+    all_links = [link.get('href') for link in soup.find_all('a', attrs={'href': re.compile('^http://')})]
+    legal_links = filter(is_legal, all_links)
+
+    # Check for redundancy in the frontier somewhere 
+    # around here and return that filtered link instead
+    # to prevent infinite loops
+    
+    return legal_links
+
+def is_legal(url):
+    for domain in LEGAL_DEOMAINS:
+        if domain.match(url):
+            return True
+        return False
 
 def is_valid(url):
     try:
