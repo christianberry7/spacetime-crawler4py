@@ -8,14 +8,15 @@ import re
 _LEGAL_DOMAINS = r'.ics.uci.edu/|.cs.uci.edu/|.informatics.uci.edu/|.stat.uci.edu/|today.uci.edu/department/information_computer_sciences/'
 LEGAL_DOMAINS = re.compile(_LEGAL_DOMAINS)
 
-_TRUNCATE_FRAGMENT = r'[?].*'
-TRUNCATE_FRAGMENT = re.compile(_TRUNCATE_FRAGMENT)
+_TRUNCATE = r'[#].*'
+TRUNCATE = re.compile(_TRUNCATE)
 
 
 def scraper(url, resp):
     # Need to handle redirection loops
     # print(">> [STATUS CODE]", resp.status)
-    if resp.status == requests.codes['bad_request']:
+    # print(resp.error)
+    if resp.status == requests.codes['bad_request'] or resp.error:
         return []
 
     links = extract_next_links(url, resp)
@@ -24,11 +25,9 @@ def scraper(url, resp):
 def extract_next_links(url, resp):
     soup = bs4.BeautifulSoup(resp.raw_response.content, 'html.parser')
     
-    all_links = [(link.get('href')) for link in soup.find_all('a', attrs={'href': re.compile('^http://')})]
+    all_links = [(link.get('href')) for link in soup.find_all('a', attrs={'href': re.compile(r'^http[s]://')})]
     legal_links = list(filter(is_legal_and_valid, all_links))
-
-    # Refer to function why this is commented
-    # legal_links = set(map(truncate_fragment, legal_links))
+    legal_links = set(map(truncate_fragment, legal_links))
 
     # Debugging purposes
     # print(">> Found all links:\n>> " + "\n>> ".join(all_links))
@@ -44,8 +43,7 @@ def is_legal_and_valid(url):
 
 def truncate_fragment(url):
     # Completely removes the fragment portion of the URL
-    # Not viable, loses a lot of useful links
-    return TRUNCATE_FRAGMENT.sub('', url)
+    return TRUNCATE.sub('', url)
 
 def is_valid(url):
     try:
