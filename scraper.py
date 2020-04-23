@@ -15,13 +15,15 @@ NO_CRAWL_REL = re.compile(r'nofollow|ugc|sponsored')
 
 
 def scraper(url, resp):
+    print('>> Starting scrape...')
     # Need to handle redirection loops
     # print(">> [STATUS CODE]", resp.status)
     # print(resp.error)
-    if resp.status == requests.codes['bad_request'] or resp.error:
+    if str(resp.status).startswith('4') or resp.error:
         return []
 
     links = extract_next_links(url, resp)
+    print('>> Scraping done!')
     return [link for link in links]
 
 def extract_next_links(url, resp):
@@ -90,7 +92,8 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$"
+            + r"|ppsx|pdf", parsed.path.lower())    
 
     except TypeError:
         print ("TypeError for ", parsed)
