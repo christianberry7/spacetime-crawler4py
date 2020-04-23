@@ -11,7 +11,7 @@ LEGAL_DOMAINS = re.compile(_LEGAL_DOMAINS)
 _TRUNCATE = r'[#].*'
 TRUNCATE = re.compile(_TRUNCATE)
 
-NO_CRAWL_REL = re.compile(r'nofollow|ugc|sponsered')
+NO_CRAWL_REL = re.compile(r'nofollow|ugc|sponsored')
 
 
 def scraper(url, resp):
@@ -26,8 +26,13 @@ def scraper(url, resp):
 
 def extract_next_links(url, resp):
     soup = bs4.BeautifulSoup(resp.raw_response.content, 'html.parser')
+    url_parsed = urlparse(url)
+    url_base_compiled = url_parsed[0] + '://' + url_parsed[1]
     
     all_links = [link.get('href') for link in soup.find_all(is_tag_crawlable)]
+    all_links = list(filter(lambda link: append_path(url_base_compiled, link), all_links))
+    # print('>>>>', all_links)
+
     legal_links = list(filter(is_legal_and_valid, all_links))
     legal_links = set(map(truncate_fragment, legal_links))
 
@@ -44,13 +49,23 @@ def extract_next_links(url, resp):
     return legal_links
 
 def is_tag_crawlable(tag):
-    if tag.name == 'a':
-        if tag.has_attr('rel'):
-            # print(tag.attrs)
-            for attr in tag['rel']:
-                if NO_CRAWL_REL.search(attr) is None:
-                    return True
-    return False
+    if tag.name != 'a':
+        return False
+
+    if not tag.has_attr('rel'):
+        return True
+
+    for attr in tag['rel']:
+        if NO_CRAWL_REL.search(attr) is not None:
+            return False
+        return True
+
+def append_path(url, path:str):
+    # print(url, path)
+    if path is None or not path.startswith('/'):
+        return path
+    
+    return url+path
 
 def is_legal_and_valid(url):
     # Checks to see if URL is within our intended scope

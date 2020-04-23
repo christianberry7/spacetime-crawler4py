@@ -11,20 +11,20 @@ class Tokenizer:
 
             word_count += 1
 
-            word = word.lower().strip("!@#$%^&*(),-_=+./:;''\][`")
+            word = word.lower().strip("!@#$%^&*(),-_=+./:;''\\][`")
 
             if token_dict.get(word) == None :
                 token_dict[word] = 1
             else:
                 token_dict[word] += 1
 
-            if final_dict.get(word) == None:
+            if self.final_dict.get(word) == None:
                 self.final_dict[word] = 1
             else:
                 self.final_dict[word] += 1
 
         if word_count > self.max_count:
-            max_count = word_count
+            self.max_count = word_count
 
     def Similarity(self,list1, list2):
         finalList = []
@@ -35,10 +35,10 @@ class Tokenizer:
         return finalList == list1
 
     def Max_count(self):
-        return max_count
+        return self.max_count
 
     def Final_dict(self):
-        return final_dict
+        return self.final_dict
 
            
 
