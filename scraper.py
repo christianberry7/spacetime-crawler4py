@@ -5,7 +5,7 @@ import bs4
 import requests
 import re
 
-_LEGAL_DOMAINS = r'.ics.uci.edu/|.cs.uci.edu/|.informatics.uci.edu/|.stat.uci.edu/|today.uci.edu/department/information_computer_sciences/'
+_LEGAL_DOMAINS = r'.ics.uci.edu/|.cs.uci.edu/|.informatics.uci.edu/|.stat.uci.edu/|/today.uci.edu/department/information_computer_sciences/'
 LEGAL_DOMAINS = re.compile(_LEGAL_DOMAINS)
 
 _TRUNCATE = r'[#].*'
